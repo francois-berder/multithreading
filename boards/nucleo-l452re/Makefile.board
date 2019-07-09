@@ -1,0 +1,7 @@
+CFLAGS += -mcpu=cortex-m4 -mlittle-endian -mfloat-abi=hard -mfpu=fpv4-sp-d16
+CFLAGS += -include boards/$(BOARD)/include/stm32l452xx.h
+LDFLAGS += -mcpu=cortex-m4 -mlittle-endian -mfloat-abi=hard -mfpu=fpv4-sp-d16
+LDFLAGS += -L boards/$(BOARD)/ldscripts -T stm32l452re.ld
+
+## Specific flags for STM32L452RE
+JLINK_DEVICE := STM32L452RE

@@ -117,20 +117,25 @@ void __attribute__((naked)) pendsv_handler(void)
         "str r12, [r1]\n"
 
         /* Load context of next_task */
-        "ldr r2, [r3]\n"
-        "ldmfd r2!, {r4-r11}\n"
+        "ldr r1, [r3]\n"
+        "ldmfd r1!, {r4-r11}\n"
 #ifdef __FPU_PRESENT
         "ldr lr, [r3, #4]\n"    /* Load exception code */
         "tst lr, #0x00000010\n"
         "it eq\n"
-        "vldmiaeq r2!, {s16-s31}\n"
+        "vldmiaeq r1!, {s16-s31}\n"
 #endif
-        "msr psp, r2\n"
+        "msr psp, r1\n"
 
         /* Set current_task to next_task */
         "str r3, [r0]\n"
 
         "context_switch_end:\n"
+
+        /* Set next_task to NULL */
+        "mov r1, #0\n"
+        "str r1, [r2]\n"
+
         "cpsie i\n"
         "bx lr\n"
     );

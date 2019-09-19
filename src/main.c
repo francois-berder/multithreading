@@ -20,6 +20,8 @@
 #include "scheduler.h"
 #include <stdint.h>
 
+#define DUMMY_TASK_ID       (1)
+
 static uint8_t dummy_task_stack[1024];
 
 void dummy_task(void)
@@ -31,7 +33,7 @@ void dummy_task(void)
 
 void main(void)
 {
-    task_create(1, dummy_task, dummy_task_stack, 1024);
+    task_create(DUMMY_TASK_ID, dummy_task, dummy_task_stack, 1024);
 
     while (1) {
         scheduler_yield();

@@ -177,12 +177,12 @@ void scheduler_yield(void)
     int i;
     int current_task_index;
 
-    __asm__ volatile ("cpsid i" : : : "memory");
 
     /* Select next task to run */
-    next_task = NULL;
+    current_task_index = ((uint32_t)current_task - (uint32_t)tasks) / sizeof(struct task_t);
+    /* next_task was cleared in the last context switch */
     while (!next_task) {
-        current_task_index = ((uint32_t)current_task - (uint32_t)tasks) / sizeof(struct task_t);
+        __asm__ volatile ("cpsid i" : : : "memory");
         for (i = 0; i < TASK_COUNT; ++i) {
             int index = current_task_index + i + 1;
             if (index >= TASK_COUNT)
@@ -193,8 +193,10 @@ void scheduler_yield(void)
                 break;
             }
         }
-        if (!next_task)
+        if (!next_task) {
             pm_enter();
+            __asm__ volatile ("cpsie i" : : : "memory");
+        }
     }
 
     __asm__ volatile ("cpsie i" : : : "memory");

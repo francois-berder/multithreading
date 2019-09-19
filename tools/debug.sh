@@ -13,7 +13,7 @@ echo "set confirm off\ntarget remote localhost:3333" > ${GDBSCRIPT}
 
 trap "" INT
 
-setsid sh -c "JLinkGDBServer -silent -device ${JLINK_DEVICE} -speed 4000 -if JTAG -port 3333" &
+setsid sh -c "JLinkGDBServer -silent -device ${JLINK_DEVICE} -speed 4000 -if SWD -port 3333" &
 arm-none-eabi-gdb -q -x ${GDBSCRIPT} ${ELFFILE}
 killall JLinkGDBServer
 rm -f ${GDBSCRIPT}

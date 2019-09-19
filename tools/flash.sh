@@ -11,5 +11,5 @@ HEXFILE=$2
 CMDFILE=$(mktemp /tmp/jlink.XXXXX)
 
 echo "r\nloadfile ${HEXFILE}\nr\nq\n" > ${CMDFILE}
-JLinkExe -device ${JLINK_DEVICE} -speed 12000 -if JTAG -jtagconf -1,-1 -Autoconnect 1 -ExitOnError -commandfile ${CMDFILE}
+JLinkExe -device ${JLINK_DEVICE} -speed 12000 -if SWD -jtagconf -1,-1 -Autoconnect 1 -ExitOnError -commandfile ${CMDFILE}
 rm -f ${CMDFILE}

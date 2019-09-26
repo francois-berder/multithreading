@@ -17,7 +17,6 @@
  * along with multithreading.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pm.h"
 #include "scheduler.h"
 #include <stddef.h>
 #include <stdint.h>
@@ -194,7 +193,7 @@ scheduler_yield_start:
         __asm__ volatile ("cpsie i" : : : "memory");
         SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
     }  else {
-        pm_enter();
+        __asm__ volatile ("wfi" ::: "memory");
         __asm__ volatile ("cpsie i" : : : "memory");
         goto scheduler_yield_start;
     }

@@ -15,7 +15,7 @@ BINDIR := $(BUILDDIR)/$(BOARD)/$(CONFIG)/bin
 
 TARGET := multithreading
 
-SRCS := main.c lock.c pm.c scheduler.c startup.c
+SRCS := main.c scheduler.c startup.c
 SRCS := $(SRCS:%=src/%)
 OBJS := $(SRCS:%.c=$(OBJDIR)/%.o)
 DEPS := $(SRCS:%.c=$(DEPDIR)/%.d)

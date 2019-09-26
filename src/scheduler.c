@@ -42,7 +42,7 @@ struct task_t {
 #ifdef __FPU_PRESENT
     uint32_t exception_code;
 #endif
-    uint32_t flags;
+    struct task_t *next;
 };
 
 static struct task_t tasks[TASK_COUNT];
@@ -53,6 +53,8 @@ static struct task_t tasks[TASK_COUNT];
  */
 static __attribute__((used)) struct task_t *current_task;
 static __attribute__((used)) struct task_t *next_task;
+
+static struct task_t *scheduled_tasks;
 
 static uint8_t __attribute__((aligned(64))) main_stack[MAIN_STACK_LENGTH];
 
@@ -148,7 +150,6 @@ static noreturn void stop_task(void)
      * We reach this function if the task returns from the entry point.
      * In other words, the task finished its job.
      */
-    current_task->flags &= ~TASK_ACTIVE;
     scheduler_yield();
     __builtin_unreachable();
 }
@@ -174,33 +175,24 @@ noreturn void scheduler_start(void)
 
 void scheduler_yield(void)
 {
-    int i;
-    int current_task_index;
+scheduler_yield_start:
 
+    __asm__ volatile ("cpsid i" : : : "memory");
 
-    /* Select next task to run */
-    current_task_index = ((uint32_t)current_task - (uint32_t)tasks) / sizeof(struct task_t);
-    /* next_task was cleared in the last context switch */
-    while (!next_task) {
-        __asm__ volatile ("cpsid i" : : : "memory");
-        for (i = 0; i < TASK_COUNT; ++i) {
-            int index = current_task_index + i + 1;
-            if (index >= TASK_COUNT)
-                index -= TASK_COUNT;
-
-            if (tasks[index].flags & TASK_ACTIVE) {
-                next_task = &tasks[index];
-                break;
-            }
-        }
-        if (!next_task) {
-            pm_enter();
-            __asm__ volatile ("cpsie i" : : : "memory");
-        }
+    if (scheduled_tasks) {
+        next_task = scheduled_tasks;
+        scheduled_tasks = scheduled_tasks->next;
+        next_task->next = NULL;
     }
 
-    __asm__ volatile ("cpsie i" : : : "memory");
-    SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
+    if (next_task) {
+        __asm__ volatile ("cpsie i" : : : "memory");
+        SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
+    }  else {
+        pm_enter();
+        __asm__ volatile ("cpsie i" : : : "memory");
+        goto scheduler_yield_start;
+    }
 }
 
 void task_create(unsigned int id, void (*entrypoint)(void), void *stack, uint32_t stack_size)
@@ -236,17 +228,25 @@ void task_create(unsigned int id, void (*entrypoint)(void), void *stack, uint32_
 #ifdef __FPU_PRESENT
     tasks[id].exception_code = EXC_RETURN;
 #endif
-    tasks[id].flags = TASK_ACTIVE;
 }
 
-void task_resume(unsigned int id)
+void task_schedule(unsigned int id)
 {
-    tasks[id].flags |= TASK_ACTIVE;
-}
+    if (scheduled_tasks) {
+        struct task_t *tail;
 
-void task_pause(unsigned int id)
-{
-    tasks[id].flags &= ~TASK_ACTIVE;
-    if (current_task == &tasks[id])
-        scheduler_yield();
+        /*
+         * Append to the end of the list. We assume
+         * that the scheduled list will never be very long.
+         */
+        tail = scheduled_tasks;
+        while (tail->next)
+            tail = tail->next;
+
+        tail->next = &tasks[id];
+    } else {
+        scheduled_tasks = &tasks[id];
+    }
+
+    tasks[id].next = NULL;
 }

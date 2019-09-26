@@ -34,6 +34,7 @@ void dummy_task(void)
 void main(void)
 {
     task_create(DUMMY_TASK_ID, dummy_task, dummy_task_stack, 1024);
+    task_schedule(DUMMY_TASK_ID);
 
     while (1) {
         scheduler_yield();

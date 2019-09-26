@@ -44,6 +44,7 @@ void scheduler_yield(void);
  * @Brief Create a task
  *
  * Note that main task is created in scheduler_start.
+ * Note that the task is not scheduled.
  *
  * @param[in] id Must be less than TASK_COUNT
  * @param[in] entrypoint
@@ -53,19 +54,10 @@ void scheduler_yield(void);
 void task_create(unsigned int id, void (*entrypoint)(void), void *stack, uint32_t stack_size);
 
 /**
- * @brief Add task to running task list
+ * @brief Add task to scheduled task list
  *
  * @param[in] id
  */
-void task_resume(unsigned int id);
-
-/**
- * @brief Remove task from running task list
- *
- * If this is the running task, it will yield to another task.
- *
- * @param[in] id
- */
-void task_pause(unsigned int id);
+void task_schedule(unsigned int id);
 
 #endif

@@ -190,8 +190,8 @@ scheduler_yield_start:
 
     if (next_task) {
         next_task->status = TASK_RUNNING;
-        __asm__ volatile ("cpsie i" : : : "memory");
         SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
+        __asm__ volatile ("cpsie i" : : : "memory");
     }  else {
         __asm__ volatile ("wfi" ::: "memory");
         __asm__ volatile ("cpsie i" : : : "memory");

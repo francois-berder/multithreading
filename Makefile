@@ -33,6 +33,7 @@ DEPFLAGS = -MMD -MP -MF $(@:$(OBJDIR)/%.o=$(DEPDIR)/%.d)
 LDFLAGS += -Wl,--gc-sections
 LDFLAGS += -Wl,-Map=$(BINDIR)/$(TARGET).map
 LDFLAGS += -specs=nosys.specs
+LDFLAGS += -nostartfiles
 
 ifeq ($(CONFIG),release)
 CFLAGS += -O2 -fno-delete-null-pointer-checks

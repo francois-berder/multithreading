@@ -27,6 +27,10 @@ static uint8_t dummy_task_stack[1024];
 void dummy_task(void)
 {
     while (1) {
+        /*
+         * Leave dummy task. No other task is scheduled
+         * so CPU is going to sleep.
+         */
         scheduler_yield();
     }
 }
@@ -37,6 +41,12 @@ void main(void)
     task_schedule(DUMMY_TASK_ID);
 
     while (1) {
+
+        /*
+         * Leave main task to execute dummy task.
+         * Since the main task will not be scheduled again,
+         * it will not be executed anymore.
+         */
         scheduler_yield();
     }
 }

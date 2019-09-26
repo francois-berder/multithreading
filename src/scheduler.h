@@ -28,6 +28,12 @@
 
 #define MAIN_TASK_ID    (0)
 
+enum task_status_t {
+    TASK_STOPPED,
+    TASK_SCHEDULED,
+    TASK_RUNNING,
+};
+
 /**
  * @brief Start scheduler
  *
@@ -59,5 +65,11 @@ void task_create(unsigned int id, void (*entrypoint)(void), void *stack, uint32_
  * @param[in] id
  */
 void task_schedule(unsigned int id);
+
+/**
+ * @param[in] id
+ * @return Task status
+ */
+enum task_status_t task_get_status(unsigned int id);
 
 #endif

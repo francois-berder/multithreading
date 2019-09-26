@@ -42,6 +42,7 @@ struct task_t {
 #ifdef __FPU_PRESENT
     uint32_t exception_code;
 #endif
+    enum task_status_t status;
     struct task_t *next;
 };
 
@@ -166,6 +167,7 @@ noreturn void scheduler_start(void)
     task_create(MAIN_TASK_ID, main, main_stack, MAIN_STACK_LENGTH);
 
     current_task = &tasks[MAIN_TASK_ID];
+    current_task->status = TASK_RUNNING;
     next_task = NULL;
     __asm__ volatile ("cpsie i" : : : "memory");
     __asm__ volatile ("svc 0");
@@ -179,6 +181,8 @@ scheduler_yield_start:
 
     __asm__ volatile ("cpsid i" : : : "memory");
 
+    current_task->status = TASK_STOPPED;
+
     if (scheduled_tasks) {
         next_task = scheduled_tasks;
         scheduled_tasks = scheduled_tasks->next;
@@ -186,6 +190,7 @@ scheduler_yield_start:
     }
 
     if (next_task) {
+        next_task->status = TASK_RUNNING;
         __asm__ volatile ("cpsie i" : : : "memory");
         SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
     }  else {
@@ -228,6 +233,7 @@ void task_create(unsigned int id, void (*entrypoint)(void), void *stack, uint32_
 #ifdef __FPU_PRESENT
     tasks[id].exception_code = EXC_RETURN;
 #endif
+    tasks[id].status = TASK_STOPPED;
 }
 
 void task_schedule(unsigned int id)
@@ -248,5 +254,11 @@ void task_schedule(unsigned int id)
         scheduled_tasks = &tasks[id];
     }
 
+    tasks[id].status = TASK_SCHEDULED;
     tasks[id].next = NULL;
+}
+
+enum task_status_t task_get_status(unsigned int id)
+{
+    return tasks[id].status;
 }
